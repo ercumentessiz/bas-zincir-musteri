@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Bu e-postaların hepsi veriyi GÖREBİLİR. Bu listede olmayan hiç kimse
+    // (hesabı olsa bile) veriyi göremez. src/firebase/config.js içindeki
+    // ALLOWED_EMAILS listesiyle AYNI tutun. Değişiklikten sonra
+    // Firebase Console → Firestore → Rules → Publish demeyi unutmayın.
+    function allowedEmails() {
+      return [
+        "pdrercumentessiz@gmail.com",
+        "baszincirosb@gmail.com",
+        "baszincir@gmail.com",
+        "pazarlama2@baszincir.com.tr"
+      ];
+    }
+
+    function isAllowedUser() {
+      return request.auth != null && request.auth.token.email in allowedEmails();
+    }
+
+    // Sadece bu e-posta ekleme/düzenleme/silme yapabilir (tam yetkili).
+    // src/firebase/config.js içindeki ADMIN_EMAIL ile AYNI olmalıdır.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email ==
+        "pdrercumentessiz@gmail.com";
+    }
+
+    match /customers/{customerId} {
+      allow read: if isAllowedUser();
+      allow create, update, delete: if isAdmin();
+    }
+    match /invoices/{invoiceId} {
+      allow read: if isAllowedUser();
+      allow create, update, delete: if isAdmin();
+    }
+    match /payments/{paymentId} {
+      allow read: if isAllowedUser();
+      allow create, update, delete: if isAdmin();
+    }
+    match /checks/{checkId} {
+      allow read: if isAllowedUser();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

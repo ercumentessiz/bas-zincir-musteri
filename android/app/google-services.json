@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "777501165779",
+    "project_id": "bas-zincir-musteri",
+    "storage_bucket": "bas-zincir-musteri.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777501165779:android:224340c58d323545daac26",
+        "android_client_info": {
+          "package_name": "com.baszincir.musteri"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAI3y-h6V2F26EsXl8L73c6cxjQvvy1XXk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

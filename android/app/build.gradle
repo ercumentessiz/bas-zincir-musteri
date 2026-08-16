@@ -1,0 +1,62 @@
+apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
+apply plugin: "com.google.gms.google-services"
+
+react {
+}
+
+def enableProguardInReleaseBuilds = false
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+
+    namespace "com.baszincir.musteri"
+    defaultConfig {
+        applicationId "com.baszincir.musteri"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+    }
+    signingConfigs {
+        // NOTE: For a real Play Store release, replace this with your own
+        // upload keystore. For sideload/APK-only distribution (as requested)
+        // this debug-style config lets GitHub Actions produce an installable,
+        // self-signed release APK with no external signing service.
+        release {
+            storeFile file("release.keystore")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "baszincir2026"
+            keyAlias System.getenv("KEY_ALIAS") ?: "baszincir"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "baszincir2026"
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+}
+
+dependencies {
+    implementation("com.facebook.react:react-android")
+    implementation("com.facebook.react:hermes-android")
+
+    implementation project(':notifee_react-native')
+    implementation project(':react-native-firebase_app')
+    implementation project(':react-native-firebase_auth')
+    implementation project(':react-native-firebase_firestore')
+    implementation project(':react-native-firebase_messaging')
+    implementation project(':react-native-firebase_storage')
+    implementation project(':react-native-picker_picker')
+    implementation project(':react-native-fs')
+    implementation project(':react-native-community_datetimepicker')
+    implementation project(':react-native-gesture-handler')
+    implementation project(':react-native-image-picker')
+    implementation project(':react-native-safe-area-context')
+    implementation project(':react-native-screens')
+    implementation project(':react-native-vector-icons')
+}

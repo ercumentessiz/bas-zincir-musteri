@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    { "collectionGroup": "customers", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "balance", "order": "DESCENDING" }] },
+    { "collectionGroup": "customers", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "balance", "order": "ASCENDING" }] },
+    { "collectionGroup": "invoices", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "dueDate", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "payments", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "date", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "checks", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "dueDate", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "invoices", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "remainingAmount", "order": "ASCENDING" }, { "fieldPath": "dueDate", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "checks", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "dueDate", "order": "ASCENDING" }
+    ]}
+  ],
+  "fieldOverrides": []
+}
