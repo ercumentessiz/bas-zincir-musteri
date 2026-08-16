@@ -1,0 +1,124 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu cek
+        uses: actions/checkout@v4
+
+      - name: Disk alani temizle
+        run: |
+          echo "Temizlik oncesi:"
+          df -h /
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android/sdk/ndk
+          sudo rm -rf /usr/local/lib/android/sdk/cmake
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /opt/hostedtoolcache/go
+          sudo rm -rf /opt/hostedtoolcache/PyPy
+          sudo docker image prune --all --force || true
+          echo "Temizlik sonrasi:"
+          df -h /
+
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: JDK 17 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Android SDK kur
+        uses: android-actions/setup-android@v3
+
+      - name: Gradle kur
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: NPM bagimliliklarini kur
+        run: npm install --legacy-peer-deps
+
+      - name: Debug - ReactPackage siniflarini bul
+        run: |
+          echo "===== JAVA (implements ReactPackage) ====="
+          grep -rl "implements ReactPackage" node_modules --include=*.java 2>/dev/null | grep -v "/example/" | sort
+          echo ""
+          echo "===== KOTLIN (: ReactPackage) ====="
+          grep -rl ": ReactPackage" node_modules --include=*.kt 2>/dev/null | grep -v "/example/" | sort
+          echo ""
+          echo "===== TurboReactPackage / BaseReactPackage kullananlar ====="
+          grep -rlE "TurboReactPackage|BaseReactPackage" node_modules --include=*.kt --include=*.java 2>/dev/null | grep -v "/example/" | sort
+          echo ""
+          echo "===== Belirli modullerde *Package.kt / *Package.java dosyalari ====="
+          find node_modules/react-native-screens node_modules/react-native-safe-area-context node_modules/react-native-gesture-handler node_modules/@react-native-community/datetimepicker node_modules/react-native-image-picker node_modules/react-native-vector-icons -type f \( -iname "*Package.kt" -o -iname "*Package.java" \) 2>/dev/null | sort
+
+      - name: Kontrol - gradle-plugin surumu
+        run: cat node_modules/@react-native/gradle-plugin/package.json | grep version
+
+      - name: google-services.json olustur
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > android/app/google-services.json
+          python3 -m json.tool android/app/google-services.json > /dev/null && echo "JSON GECERLI" || echo "JSON BOZUK"
+
+      - name: Imzalama anahtarini hazirla
+        run: |
+          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          else
+            keytool -genkeypair -v -storetype PKCS12 -keystore android/app/release.keystore -alias baszincir -keyalg RSA -keysize 2048 -validity 10000 -storepass baszincir2026 -keypass baszincir2026 -dname "CN=Bas Zincir, OU=Musteri, O=Bas Zincir, L=Istanbul, S=Istanbul, C=TR"
+          fi
+
+      - name: Gradle Wrapper olustur
+        working-directory: android
+        run: |
+          gradle wrapper --gradle-version 8.7 --distribution-type bin
+          chmod +x gradlew
+
+      - name: Gradle ile APK derle
+        id: gradle_build
+        continue-on-error: true
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'baszincir2026' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'baszincir' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'baszincir2026' }}
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Debug - autolinking teshis
+        if: always()
+        run: |
+          echo "===== npx react-native config ciktisi ====="
+          npx react-native config || echo "!!! KOMUT HATA VERDI !!!"
+          echo ""
+          echo "===== PackageList.java aranıyor ====="
+          find . -name "PackageList.java" 2>/dev/null || true
+          echo "(yukarida hicbir yol yazmadiysa, dosya hic uretilmedi demektir)"
+          echo ""
+          echo "===== autolinking ile ilgili tum dosyalar ====="
+          find android/app/build -iname "*autolink*" 2>/dev/null || echo "autolink ile ilgili hicbir dosya yok"
+          echo ""
+          echo "===== react-native.config.js var mi ====="
+          cat react-native.config.js 2>/dev/null || echo "react-native.config.js dosyasi yok (bu normal olabilir)"
+
+      - name: Derleme sonucu
+        if: steps.gradle_build.outcome == 'failure'
+        run: |
+          echo "Gradle derlemesi basarisiz oldu, yukaridaki debug ciktisina bakin."
+          exit 1
+
+      - name: APK yukle
+        uses: actions/upload-artifact@v4
+        with:
+          name: bas-zincir-musteri-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
