@@ -1,0 +1,28 @@
+name: Deploy Cloud Functions
+
+# Sadece "functions/" klasöründe değişiklik olduğunda veya elle çalıştırıldığında.
+# Bu workflow, vade günü saat 08:30'da uygulama kapalıyken bile push bildirimi
+# gönderen zamanlanmış Cloud Function'ı Firebase'e yükler.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bağımlılıkları kur
+        working-directory: functions
+        run: npm install
+
+      - name: Firebase'e deploy et
+        run: npx firebase-tools deploy --only functions --project "${{ secrets.FIREBASE_PROJECT_ID }}" --token "${{ secrets.FIREBASE_TOKEN }}"
