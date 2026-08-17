@@ -248,9 +248,9 @@ export default function CustomerDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f7f7f9' },
   headerCard: { backgroundColor: '#fff', padding: 18, marginBottom: 10 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerActions: { flexDirection: 'row', gap: 16 },
-  name: { fontSize: 20, fontWeight: '700', color: '#222' },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerActions: { flexDirection: 'row', gap: 16, flexShrink: 0 },
+  name: { fontSize: 20, fontWeight: '700', color: '#222', flex: 1, marginRight: 10 },
   infoLine: { fontSize: 14, color: '#555', marginTop: 4 },
   balance: { fontSize: 18, fontWeight: '700', marginTop: 10 },
   overdueBadge: { marginTop: 8, alignSelf: 'flex-start', backgroundColor: '#C1272D', color: '#fff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, fontWeight: '700', fontSize: 12 },
